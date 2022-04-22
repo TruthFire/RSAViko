@@ -16,7 +16,7 @@ namespace RSAViko
     {
         // p, q, n, z, d = 0, e, i;
         int p, q;
-        BigInteger n, e, d, phi;
+        public BigInteger n, e, d, phi;
 
 
 
@@ -34,9 +34,9 @@ namespace RSAViko
             n = p * q;
             phi = (p - 1) * (q - 1);
             int amount = 0;
-            for (e = p; e < phi; e++)
+            for (e = 2; e < phi; e++)
             {
-                if (gcd(e, phi) == 1)
+                if (BigInteger.GreatestCommonDivisor(phi,e) == 1)
                 {
                     amount++;
                     e_Candidates.Add(e);
@@ -49,18 +49,27 @@ namespace RSAViko
 
             e = e_Candidates[r.Next(0,e_Candidates.Count)];
             BigInteger x;
-            List<BigInteger> x_Candidates = new();
-            for(int i = 0; i < 10; i++)
+            amount = 0;
+            List<BigInteger> d_Candidates = new();
+            for (d = p; d < phi; d++)
             {
-                x = 1 + (i * phi);
 
-                if(x%e == 0)
+
+                if (e * d % phi == 1)
                 {
-                    x_Candidates.Add(x);
+                    d_Candidates.Add(d);
+
+
+                    if (amount == 20)
+                    {
+                        break;
+                    }
                 }
             }
 
-            d = x_Candidates[r.Next(0, x_Candidates.Count)] / e;
+            d = d_Candidates[r.Next(0, d_Candidates.Count)];
+
+            MessageBox.Show($"Viesasis raktas: {e}.\nPrivatus raktas: {d}");
 
         }
 
@@ -73,18 +82,101 @@ namespace RSAViko
                 str += (char)BigInteger.ModPow((int)c, e, n);
             }
 
-            byte[] arr = System.Text.Encoding.ASCII.GetBytes(str);
+           // MessageBox.Show(System.Text.Encoding.GetEncoding(str).ToString());
 
-            
-            return Convert.ToBase64String(arr, 0, arr.Length);
+
+
+            return str;
         }
 
         public string Decrypt(string msg)
         {
-            return "";
+          //  Byte[] b64Bytes = System.Convert.FromBase64String(msg);
+           // string rawString = System.Text.Encoding.ASCII.GetString(b64Bytes);
+            string rez = "";
+            foreach(char c in msg)
+            {
+                rez += (char)BigInteger.ModPow((int)c, d, n);
+            }
+            return rez;
         }
 
-        
+        private void button2_Click(object sender, EventArgs e)
+        {
+            textBox3.Text = Decrypt(textBox4.Text);
+            
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Enter_keys ek = new(this);
+            ek.Show();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (String.IsNullOrWhiteSpace(textBox4.Text))
+                {
+                    throw new ArgumentNullException("Please encrypt your text first");
+                }
+                string creationTime = DateTime.Now.ToString("dd_mm_yyyy_HH_mm_ss");
+                string fileName = "EncryptedText_" + creationTime + ".txt";
+
+                // Check if file already exists. If yes, delete it.     
+                if (File.Exists(fileName))
+                {
+                    File.Delete(fileName);
+                }
+
+                // Create a new file
+                File.WriteAllText(fileName, textBox4.Text);
+
+                if (MessageBox.Show("Do you want to save public and private keys in separate file?",
+                    "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    fileName = "Keys_" + creationTime + ".txt";
+                    if (File.Exists(fileName))
+                    {
+                        File.Delete(fileName);
+                    }
+                    string Keys = String.Format("Public: {0}\nPrivate: {1}.txt", e, d);
+                    File.WriteAllText(fileName, Keys);
+
+                }
+
+            }
+            catch (Exception Ex)
+            {
+                MessageBox.Show(Ex.Message);
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Show openfiledialog
+                using (OpenFileDialog openFileDialog = new OpenFileDialog())
+                {
+                    openFileDialog.InitialDirectory = "";
+                    openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+                    openFileDialog.FilterIndex = 2;
+                    openFileDialog.RestoreDirectory = true;
+
+                    // Read all content of file to textbox
+                    if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        textBox4.Text = File.ReadAllText(openFileDialog.SafeFileName);
+                    }
+                }
+            }
+            catch (Exception Ex)
+            {
+                MessageBox.Show(Ex.Message);
+            }
+        }
 
         protected BigInteger gcd(BigInteger a, BigInteger b)
         {
@@ -125,7 +217,12 @@ namespace RSAViko
 
         private void button1_Click(object sender, EventArgs e)
         {
-            
+            p = Convert.ToInt32(textBox1.Text);
+            q = Convert.ToInt32(textBox2.Text);
+            count_e_d();
+
+            textBox4.Text = Encrypt(textBox3.Text);
+
         }
     }
 }
