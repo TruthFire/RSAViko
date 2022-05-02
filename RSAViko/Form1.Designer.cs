@@ -75,7 +75,7 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(374, 67);
             this.button1.TabIndex = 4;
-            this.button1.Text = "e";
+            this.button1.Text = "encrypt";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -101,7 +101,7 @@
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(374, 67);
             this.button2.TabIndex = 7;
-            this.button2.Text = "d";
+            this.button2.Text = "decrypt";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 

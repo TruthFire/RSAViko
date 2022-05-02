@@ -23,9 +23,10 @@ namespace RSAViko
         public Form1()
         {
             InitializeComponent();
-            
-
+          
         }
+
+       
 
         public void count_e_d()
         {
@@ -48,26 +49,7 @@ namespace RSAViko
             }
 
             e = e_Candidates[r.Next(0,e_Candidates.Count)];
-            BigInteger x;
-            amount = 0;
-            List<BigInteger> d_Candidates = new();
-            for (d = p; d < phi; d++)
-            {
-
-
-                if (e * d % phi == 1)
-                {
-                    d_Candidates.Add(d);
-
-
-                    if (amount == 20)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            d = d_Candidates[r.Next(0, d_Candidates.Count)];
+            getDec_Key();
 
             MessageBox.Show($"Viesasis raktas: {e}.\nPrivatus raktas: {d}");
 
@@ -83,6 +65,9 @@ namespace RSAViko
             }
 
            // MessageBox.Show(System.Text.Encoding.GetEncoding(str).ToString());
+           byte[] bytes2 = System.Text.Encoding.UTF8.GetBytes(str);
+            str= System.Convert.ToBase64String(bytes2);
+
 
 
 
@@ -91,10 +76,10 @@ namespace RSAViko
 
         public string Decrypt(string msg)
         {
-          //  Byte[] b64Bytes = System.Convert.FromBase64String(msg);
-           // string rawString = System.Text.Encoding.ASCII.GetString(b64Bytes);
+            byte[] b64Bytes = System.Convert.FromBase64String(msg);
+            string rawString = System.Text.Encoding.UTF8.GetString(b64Bytes);
             string rez = "";
-            foreach(char c in msg)
+            foreach(char c in rawString)
             {
                 rez += (char)BigInteger.ModPow((int)c, d, n);
             }
@@ -178,12 +163,45 @@ namespace RSAViko
             }
         }
 
-        protected BigInteger gcd(BigInteger a, BigInteger b)
+        BigInteger Euclid(BigInteger a, BigInteger b, out BigInteger x, out BigInteger y)
         {
-            if (b == 0)
-                return a;
+            if (b < a)
+            {
+                var t = a;
+                a = b;
+                b = t;
+            }
+
+            if (a == 0)
+            {
+                x = 0;
+                y = 1;
+                return b;
+            }
+
+            BigInteger gcd = Euclid(b % a, a, out x, out y);
+
+            BigInteger newY = x;
+            BigInteger newX = y - (b / a) * x;
+
+            x = newX;
+            y = newY;
+            return gcd;
+        }
+
+        void getDec_Key()
+        {
+            BigInteger x, y;
+            Euclid(e,phi,out x, out y);
+           // MessageBox.Show($"{x}, {y}");
+            if(x < 0)
+            {
+                d = phi + x;
+            }
             else
-                return gcd(a, a % b);
+            {
+                d = phi;
+            }
         }
 
         private bool IsTheNumberSimple(long n)
